@@ -2,6 +2,14 @@ import { renderHook, act } from "@testing-library/react";
 import { useTodos } from "../src/hooks/useTodos";
 
 describe("useTodos", () => {
+  const addTodoAndGetId = (
+    result: { current: ReturnType<typeof useTodos> },
+    title: string
+  ) => {
+    act(() => result.current.addTodo(title));
+    return result.current.todos[result.current.todos.length - 1].id;
+  };
+
   it("должен добавлять новый todo", () => {
     const { result } = renderHook(() => useTodos());
 
@@ -17,46 +25,28 @@ describe("useTodos", () => {
   it("должен переключать completed у todo", () => {
     const { result } = renderHook(() => useTodos());
 
-    act(() => {
-      result.current.addTodo("Test Todo");
-    });
+    const id = addTodoAndGetId(result, "Test Todo");
 
-    const id = result.current.todos[0].id;
-
-    act(() => {
-      result.current.onToggle(id);
-    });
-
+    act(() => result.current.onToggle(id));
     expect(result.current.todos[0].completed).toBe(true);
 
-    act(() => {
-      result.current.onToggle(id);
-    });
-
+    act(() => result.current.onToggle(id));
     expect(result.current.todos[0].completed).toBe(false);
   });
 
-  test("должен удалять все выполненные todos при clearCompleted", () => {
+  it("должен удалять все выполненные todos при clearCompleted", () => {
     const { result } = renderHook(() => useTodos());
-
     let counter = 1;
+
     jest.spyOn(global.Date, "now").mockImplementation(() => counter++);
 
-    act(() => {
-      result.current.addTodo("Todo 1");
-      result.current.addTodo("Todo 2");
-    });
+    const firstId = addTodoAndGetId(result, "Todo 1");
+    addTodoAndGetId(result, "Todo 2");
 
-    act(() => {
-      const firstTodoId = result.current.todos[0].id;
-      result.current.onToggle(firstTodoId);
-    });
+    act(() => result.current.onToggle(firstId));
+    act(() => result.current.clearCompleted());
 
-    act(() => {
-      result.current.clearCompleted();
-    });
-
-    expect(result.current.todos.length).toBe(1);
+    expect(result.current.todos).toHaveLength(1);
     expect(result.current.todos[0].title).toBe("Todo 2");
 
     jest.restoreAllMocks();
