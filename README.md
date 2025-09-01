@@ -35,4 +35,4 @@ npm run preview
 
 ### Deploy on Vercel
 
-[Click]()
+[Click](https://react-todo-bn9ar13tv-antons-projects-dfe7b87e.vercel.app/)
